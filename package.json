@@ -1,0 +1,29 @@
+{
+  "_fileDescription": "项目包配置文件，声明 2.5D 自然大厅的脚本、依赖和基础元数据。",
+  "name": "tinglai-nature-hall",
+  "description": "A Phaser + TypeScript + Vite scaffold for the 2.5D Tinglai Nature Hall.",
+  "version": "0.1.0",
+  "private": true,
+  "author": "Tinglai Nature Hall",
+  "license": "MIT",
+  "licenseUrl": "http://www.opensource.org/licenses/mit-license.php",
+  "scripts": {
+    "dev": "vite --config vite/config.dev.mjs",
+    "build": "vite build --config vite/config.prod.mjs",
+    "dev-nolog": "vite --config vite/config.dev.mjs",
+    "build-nolog": "vite build --config vite/config.prod.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.12",
+    "typescript": "~5.7.2",
+    "vite": "^6.3.1"
+  },
+  "dependencies": {
+    "phaser": "4.0.0",
+    "terser": "^5.39.0"
+  }
+}

@@ -1,0 +1,36 @@
+<!-- Hosts the Vite-built Phaser canvas for the Nature Hall prototype. -->
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Tinglai Nature Hall</title>
+        <style>
+            html,
+            body,
+            #game-container {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+            }
+
+            body {
+                overflow: hidden;
+                background: #17201c;
+            }
+
+            #game-container {
+                display: grid;
+                place-items: center;
+            }
+
+            canvas {
+                display: block;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="game-container"></div>
+        <script type="module" src="/src/main.ts"></script>
+    </body>
+</html>
