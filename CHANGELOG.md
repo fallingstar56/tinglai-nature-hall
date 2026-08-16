@@ -4,6 +4,55 @@
 
 ## 2026-08-17
 
+Developer implemented the CARD2-style centered bird detail overlay.
+
+- Updated `BirdInfoPanel` overlay styling so the bird detail card opens centered horizontally and vertically instead of being docked to an edge.
+- Changed the desktop card to a narrower, taller form with `min(560px, calc(100vw - 120px))` width, clear viewport margins, and internal scrolling via `max-height: calc(100vh - 120px)`.
+- Added a translucent dark overlay with backdrop blur, saturation reduction, and slight dimming so the Nature Hall remains visible behind the card instead of being fully covered.
+- Updated mobile layout to keep the card centered with `calc(100vw - 32px)` width, `calc(100vh - 48px)` max height, and retained stacked action buttons.
+- Preserved the existing card content structure, audio availability checks, missing resource fallbacks, and `E`/click/`Esc` interaction behavior.
+- Verification reported by Developer: `npm run typecheck` passed; `npm run build-nolog` passed after repairing a local Rollup optional dependency install issue.
+
+Tester verified the CARD2-style centered overlay with status PASS.
+
+- Tests performed: read `PLAN.md`, reviewed `BirdInfoPanel` and related integration paths, ran `npm run typecheck` with PASS, ran `npm run build-nolog` with PASS, and confirmed the Vite dev server returned valid HTML after an escalated bind on `http://127.0.0.1:8081/`.
+- Verified the overlay is fullscreen and centered, the desktop card is compact with clear margins, long content scrolls inside the card, mobile retains margins and stacked actions, and the background remains visible through blur/dim styling.
+- Verified existing interactions and fallbacks remain intact, including `E`/click open, `Esc`/close, movement restore, audio stop, portrait fallback, unavailable audio handling, and audio probing before playback.
+- No Critical, High, Medium, or Low severity issues were found.
+- Final acceptance decision: the CARD2-style centered card and blurred visible background revision is accepted for this development round.
+
+Developer implemented the bird detail card layout revision from `PLAN.md`.
+
+- Reworked `BirdInfoPanel` into a structured card with header, circular portrait fallback, title/pronunciation/category metadata, aligned information sections, audio attribution, and bottom actions.
+- Extended `BirdProfile` with optional card fields including pronunciation, category, call features, behavior, distribution, conservation status, fun fact, and audio credit metadata.
+- Expanded `src/data/birds.json` for the red-crowned crane with card-ready content while keeping the new fields optional for future birds.
+- Preserved the existing bird interaction behavior, audio availability probing, missing portrait/audio fallbacks, play/pause state handling, and mobile action stacking.
+- Verification reported by Developer: `npm run typecheck` passed; `npm run build-nolog` passed.
+- Known limitation: the current red-crowned crane audio credit is placeholder metadata and should be replaced before production resource release.
+
+Tester reviewed the bird detail card layout revision with status PASS WITH ISSUES.
+
+- Tests performed: read `PLAN.md`, reviewed `BirdInfoPanel`, `BirdProfile`, `birds.json`, and related interaction/audio wiring; ran `npm run typecheck` with PASS; ran `npm run build-nolog` with PASS; attempted `npm run dev-nolog -- --host 127.0.0.1` in sandbox and hit `listen EPERM`; verified the dev server with escalation and confirmed `/` returned `200 OK`.
+- Verified implemented: card header, portrait fallback, display name, pronunciation, Latin name, optional category, aligned info sections, optional field hiding, audio attribution, audio actions, missing audio detection, and existing `E`/click/`Esc` interaction behavior.
+- No Critical, High, or Medium severity issues were found.
+- Low issue: long unbroken metadata strings in fields such as `audioCredit.source`, `audioCredit.license`, `latinName`, or body text may overflow on narrow mobile layouts because text-bearing elements do not explicitly set wrapping safeguards.
+- Developer follow-up requested for the Low mobile overflow risk because it directly relates to the card layout polish acceptance criteria.
+
+Developer fixed the bird detail card mobile overflow risk.
+
+- Updated `BirdInfoPanel` scoped CSS with wrapping safeguards for title, category tag, pronunciation, Latin name, section copy, attribution lines, and audio status.
+- Added `min-width: 0` where needed so card text columns can shrink correctly in grid/flex layouts.
+- Changed category tag behavior so long labels can wrap within the card instead of forcing a single unbroken line.
+- Verification reported by Developer: `npm run typecheck` passed; `npm run build-nolog` passed.
+
+Tester completed second-round verification for the card layout revision with status PASS.
+
+- Tests performed: reread `PLAN.md`, reviewed `src/ui/BirdInfoPanel.ts`, ran `npm run typecheck` with PASS, and ran `npm run build-nolog` with PASS.
+- Verified the long unbroken metadata overflow risk is addressed by scoped wrapping safeguards and shrinkable text containers.
+- Verified the card still satisfies PLAN.md requirements for header structure, information sections, optional field hiding, audio attribution/actions, missing audio handling, and mobile button stacking.
+- No Critical, High, Medium, or Low severity issues remain.
+- Final acceptance decision: the bird detail card layout revision is accepted for this development round.
+
 Updated asset onboarding documentation for future art/resource contributors.
 
 - Clarified in `ResEmbed.md` which resource paths are currently active, which ones are future conventions, and how missing portrait/audio fallbacks behave.

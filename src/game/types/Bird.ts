@@ -3,9 +3,24 @@ export interface BirdProfile {
     id: string;
     displayName: string;
     latinName: string;
+    pronunciation?: string;
+    category?: string;
     summary: string;
+    callFeatures?: string;
+    behavior?: string;
+    distribution?: string;
+    conservationStatus?: string;
+    funFact?: string;
     habitat: string;
     recognitionTips: string[];
+    audioCredit?: {
+        source: string;
+        recorder?: string;
+        recordedAt?: string;
+        location?: string;
+        license?: string;
+        anonymous?: boolean;
+    };
     spawn: {
         x: number;
         y: number;

@@ -220,7 +220,138 @@ BirdInfoPanel
 | Buttons | 使用清晰图标或短文字：播放、暂停、关闭。 |
 | Audio state | 播放中显示进度或简单状态，不强制做复杂波形。 |
 
-## 9. Development Phases
+## 9. Bird Detail Card Layout Revision Plan
+
+后续鸟类详情面板应升级为更工整的“信息卡片”排版。`CARD.png` 可作为卡片层级和排版密度参考，`CARD2.png` 可作为居中弹层、背景模糊和卡片留白的参考，但不要求完全复刻；最终风格仍应服务自然大厅的安静展陈体验。
+
+### 9.1 Layout Goals
+
+| Goal | Description |
+|------|-------------|
+| 信息层级清楚 | 用户第一眼看到鸟名、学名、图片和分类/标签，再阅读声音、习性、分布等信息。 |
+| 排版整齐 | 卡片内边距、分隔线、图标列、正文列、按钮高度和圆角保持统一。 |
+| 内容可扩展 | 后续新增保护级别、趣味知识、音频来源、授权信息时不需要重写布局。 |
+| 移动端可读 | 小屏幕下卡片不能溢出，正文换行自然，按钮可纵向排列。 |
+| 视觉克制 | 使用柔和自然色、浅色纸感或半透明底色，避免强游戏 UI 或过重装饰。 |
+| 背景可见 | 打开卡片后大厅背景应被模糊和轻微压暗，但仍能辨认场景，不应被纯色遮罩完全盖住。 |
+
+### 9.2 Recommended Card Structure
+
+建议 `BirdInfoPanel` 采用以下信息结构：
+
+```text
+Bird detail card
+├─ Header
+│  ├─ circular portrait / fallback image
+│  ├─ displayName
+│  ├─ pinyin or pronunciation text, optional
+│  ├─ latinName
+│  ├─ category / bird tag, optional
+│  └─ close button
+├─ Info sections
+│  ├─ callFeatures / 鸣声特征
+│  ├─ behavior / 习性
+│  ├─ distribution / 分布
+│  ├─ conservationStatus / 保护级别
+│  └─ funFact / 趣味知识
+├─ Audio attribution
+│  ├─ source name
+│  ├─ recorder / date / location, optional
+│  └─ license badge, optional
+└─ Actions
+   ├─ play / pause audio button
+   └─ view full encyclopedia button, optional
+```
+
+当前 `BirdProfile` 中已有的 `summary`、`habitat`、`recognitionTips` 可以先映射到这些区块；如果需要更精确地展示 `鸣声特征`、`习性`、`分布`、`保护级别`、`趣味知识` 和 `音频来源与授权`，应扩展 `BirdProfile` 数据结构，而不是把长文案硬编码在组件里。
+
+### 9.3 Visual Rules
+
+| Element | Requirement |
+|---------|-------------|
+| Overlay | 使用全屏 DOM overlay 承载卡片，居中对齐；背景应使用 `backdrop-filter: blur(...)` 或等效方案，并叠加低透明度暗色/暖灰遮罩，让大厅画面可见但退到次级层。 |
+| Overlay spacing | 桌面端卡片距离视口上下左右都应保留明显空间，例如 overlay padding 可从 `48px - 80px` 起步；不要让卡片贴边或覆盖整屏。 |
+| Card | 桌面端采用横向较短、纵向较长的小卡片形态，建议宽度约 `520px - 620px`，最大宽度不超过 `min(620px, calc(100vw - 96px))`；圆角不超过 `20px`。 |
+| Card height | 卡片高度由内容决定，但最大高度应小于视口高度，例如 `max-height: calc(100vh - 120px)`，内容过多时卡片内部滚动，卡片本身仍保持居中和四周留白。 |
+| Mobile card | 移动端仍保持居中或靠近视觉中心，不贴满屏；宽度可为 `calc(100vw - 32px)`，高度上限为 `calc(100vh - 48px)`，必要时内部滚动。 |
+| Header | 头像在左、标题信息在右；标题、拼音/读音、拉丁名应基线清楚，避免拥挤。 |
+| Portrait | 圆形或小比例封面均可；必须有稳定尺寸，图片缺失时显示同尺寸 fallback。 |
+| Close button | 放在右上角，使用稳定的圆形或小方形点击区域，不挤压标题。 |
+| Section rows | 每个信息区块采用“图标列 + 文本列”或“标题 + 正文”结构；同级标题字号、字重和颜色一致。 |
+| Dividers | 信息区块之间使用低对比分隔线，左右边界对齐，不要出现忽长忽短的随意分割。 |
+| Icons | 图标用于帮助扫描，不承担正文信息；所有图标大小和背景圆片尺寸统一。 |
+| Body text | 中文正文行高约 `1.6 - 1.8`，段落宽度适中，长文本自然换行。 |
+| Attribution | 音频来源、录制者、日期、地点、授权信息放在操作按钮上方，字号低于正文但保持可读。 |
+| Actions | 主按钮用于播放/暂停，次按钮用于完整科普或外链入口；按钮高度、圆角、间距统一。 |
+
+卡片定位规则：
+
+1. 默认打开时卡片应在视口水平和垂直方向居中，而不是贴右侧、贴底部或占满页面。
+2. 卡片周围必须保留可感知的背景区域，用户能看出自己仍处在自然大厅中。
+3. 背景处理应优先使用模糊、轻微暗化和低饱和处理，不使用完全不透明遮罩。
+4. 卡片内容较长时只允许卡片内部滚动；overlay 不应让页面或 Phaser canvas 发生布局跳动。
+5. 关闭按钮始终位于卡片右上角，并且在卡片内部，不悬浮到卡片外导致移动端误触。
+
+### 9.4 Data Model Expansion Direction
+
+如果需要支撑更完整的卡片内容，建议后续将 `BirdProfile` 扩展为：
+
+```ts
+export interface BirdProfile {
+    id: string;
+    displayName: string;
+    latinName: string;
+    pronunciation?: string;
+    category?: string;
+    summary: string;
+    callFeatures?: string;
+    behavior?: string;
+    distribution?: string;
+    conservationStatus?: string;
+    funFact?: string;
+    habitat: string;
+    recognitionTips: string[];
+    audioCredit?: {
+        source: string;
+        recorder?: string;
+        recordedAt?: string;
+        location?: string;
+        license?: string;
+        anonymous?: boolean;
+    };
+    spawn: {
+        x: number;
+        y: number;
+    };
+    assets: {
+        sprite: string;
+        portrait: string;
+        audio: string;
+    };
+}
+```
+
+扩展规则：
+
+1. 新字段应保持可选，避免旧鸟类数据失效。
+2. 面板应对缺失字段自动隐藏对应区块，而不是显示空标题。
+3. 音频来源和授权信息应来自数据，不应写死在 UI 组件中。
+4. 如果未来接入外部百科链接，应新增明确字段，例如 `encyclopediaUrl`，并在按钮上显示外链状态。
+
+### 9.5 Acceptance Criteria
+
+| Check | Expected |
+|-------|----------|
+| Header | 鸟名、拼音/读音、拉丁名、头像和关闭按钮对齐清楚，互不遮挡。 |
+| Sections | 鸣声、习性、分布、保护级别、趣味知识等区块间距一致，分隔线对齐。 |
+| Fallback | 缺失头像、音频、授权字段或可选区块时，卡片仍保持完整排版。 |
+| Audio | 播放按钮、播放状态、音频来源与授权信息位置明确。 |
+| Responsiveness | 桌面和移动端正文不溢出，按钮不会挤压或重叠。 |
+| Centering | 桌面端和移动端打开后卡片居中显示，四周留有明显背景空间，不贴边、不铺满。 |
+| Background blur | 卡片背后的大厅画面仍可见，并被模糊/轻微压暗；不得使用完全不透明遮罩把背景全部盖住。 |
+| Style | 整体观感工整、美观、自然，不要求与 `CARD.png` 完全一样。 |
+
+## 10. Development Phases
 
 ### Phase 1: Data And Asset Contract
 
@@ -298,7 +429,7 @@ BirdInfoPanel
 | Panel | 信息清晰，图片和音频入口突出但不喧宾夺主。 |
 | Performance | 多个鸟类和粒子存在时仍保持流畅。 |
 
-## 10. Recommended Acceptance Test List
+## 11. Recommended Acceptance Test List
 
 每次实现鸟类交互后至少检查：
 
@@ -311,8 +442,11 @@ BirdInfoPanel
 7. 面板图片、文本、音频按钮状态正确。
 8. 关闭面板后声音停止，玩家控制恢复。
 9. 桌面和移动端布局无文字重叠。
+10. 鸟类详情卡片的标题区、信息区块、音频来源和按钮排版整齐，移动端不溢出。
+11. 鸟类详情卡片居中显示，呈横向较短、纵向较长的小卡片形态，四周留有明显空间。
+12. 打开卡片时背景大厅仍可辨认，并呈现模糊/轻微暗化效果，而不是被不透明背景完全遮挡。
 
-## 11. Future Expansion
+## 12. Future Expansion
 
 后续可在不重写主逻辑的前提下继续扩展：
 
