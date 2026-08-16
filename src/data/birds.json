@@ -1,0 +1,27 @@
+{
+    "_fileDescription": "鸟类数据种子文件。真实素材约定放在 public/birds/{birdId}/sprite.png、portrait.png 和 call.mp3；缺失时运行时使用占位图形和不可播放状态。",
+    "birds": [
+        {
+            "id": "red-crowned-crane",
+            "displayName": "丹顶鹤",
+            "latinName": "Grus japonensis",
+            "summary": "湿地旗舰鸟类，常见于芦苇沼泽、浅水湿地与迁徙停歇地。它体态修长，常以成对或小群活动，是东亚湿地保护的重要象征。",
+            "habitat": "湿地、沼泽、浅水湖泊、芦苇荡和迁徙停歇地",
+            "recognitionTips": [
+                "头顶有红色裸露皮肤，远看像一枚红色冠羽",
+                "体羽以白色为主，颈部和飞羽呈黑色",
+                "站立时腿和颈部修长，飞行时颈部伸直",
+                "鸣声清亮，常成对鸣叫"
+            ],
+            "spawn": {
+                "x": 690,
+                "y": 500
+            },
+            "assets": {
+                "sprite": "/birds/red-crowned-crane/sprite.png",
+                "portrait": "/birds/red-crowned-crane/portrait.png",
+                "audio": "/birds/red-crowned-crane/call.mp3"
+            }
+        }
+    ]
+}

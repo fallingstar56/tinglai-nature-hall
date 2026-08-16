@@ -13,6 +13,13 @@ export const assetManifest = {
         redPanda: '/animals/red-panda.png',
         crane: '/animals/crane.png'
     },
+    birds: {
+        redCrownedCrane: {
+            sprite: '/birds/red-crowned-crane/sprite.png',
+            portrait: '/birds/red-crowned-crane/portrait.png',
+            audio: '/birds/red-crowned-crane/call.mp3'
+        }
+    },
     audio: {
         ambientHall: '/audio/ambient/hall-loop.mp3',
         uiConfirm: '/audio/ui/confirm.mp3'

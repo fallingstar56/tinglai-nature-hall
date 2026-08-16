@@ -7,6 +7,7 @@ type MovementKeys = Record<'up' | 'down' | 'left' | 'right', Input.Keyboard.Key>
 export class InputSystem {
     private readonly cursors: Phaser.Types.Input.Keyboard.CursorKeys;
     private readonly wasd: MovementKeys;
+    private enabled = true;
 
     public constructor(scene: Scene) {
         if (!scene.input.keyboard) {
@@ -23,6 +24,10 @@ export class InputSystem {
     }
 
     public updatePlayer(player: Player, deltaSeconds: number): void {
+        if (!this.enabled) {
+            return;
+        }
+
         const x = this.axisValue(Boolean(this.cursors.left?.isDown || this.wasd.left.isDown), Boolean(this.cursors.right?.isDown || this.wasd.right.isDown));
         const y = this.axisValue(Boolean(this.cursors.up?.isDown || this.wasd.up.isDown), Boolean(this.cursors.down?.isDown || this.wasd.down.isDown));
 
@@ -37,5 +42,9 @@ export class InputSystem {
 
     private axisValue(negative: boolean, positive: boolean): number {
         return Number(positive) - Number(negative);
+    }
+
+    public setEnabled(enabled: boolean): void {
+        this.enabled = enabled;
     }
 }

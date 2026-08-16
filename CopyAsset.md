@@ -17,6 +17,13 @@
 
 如果这些模块尚未实现，先按 `PLAN.md` 完成第一只占位鸟类闭环。
 
+当前实现说明：
+
+1. 新鸟类会由 `src/data/birds.json` 自动生成 `BirdNPC`。
+2. 详情面板会读取 `portrait` 和 `audio` 路径。
+3. `sprite.png` 和 `marker.png` 目前是资源目录约定，`BirdNPC` 尚未使用真实 sprite/marker 渲染。
+4. `Preloader` 目前没有消费 `assetManifest`，新增鸟类时不需要手动改预加载逻辑。
+
 ## 2. Naming Rule
 
 每只鸟需要一个稳定的 `birdId`：
@@ -106,8 +113,7 @@ src/data/birds.json
   "assets": {
     "sprite": "/birds/kingfisher/sprite.png",
     "portrait": "/birds/kingfisher/portrait.png",
-    "audio": "/birds/kingfisher/call.mp3",
-    "marker": "/birds/kingfisher/marker.png"
+    "audio": "/birds/kingfisher/call.mp3"
   }
 }
 ```
@@ -150,9 +156,9 @@ src/game/world/HallLayout.ts
 
 ## 6. Loading New Assets
 
-如果项目使用数据驱动自动加载，则新增 `birds.json` 后无需手动改 `Preloader`。
+当前项目新增 `birds.json` 后无需手动改 `Preloader`。鸟类实体先用程序化占位图形，详情图片由 DOM `<img>` 按 URL 懒加载，音频由 `AudioSystem` 在用户打开面板后探测和播放。
 
-如果仍采用手动资源清单，需要在 `Preloader` 或 `assetManifest` 中增加：
+如果后续接入真实 Phaser sprite 或统一 loading 状态，再在 `Preloader` 或 `assetManifest` 中增加：
 
 ```ts
 this.load.image('bird:kingfisher:sprite', '/birds/kingfisher/sprite.png');
@@ -172,10 +178,10 @@ this.load.audio('bird:kingfisher:call', '/birds/kingfisher/call.mp3');
 |-------------|-----------------|
 | `birds.json` 有新鸟类数据 | `NatureScene` 创建新 `BirdNPC`。 |
 | `spawn` 坐标有效 | 鸟类出现在大厅指定位置。 |
-| `sprite` 存在 | 鸟类使用真实 sprite；否则显示占位图形。 |
-| 玩家靠近 | HUD 显示 `查看 {displayName}`。 |
+| `sprite` 路径已填写 | 当前仍显示程序化占位图形；后续接入真实 sprite 后会使用该路径。 |
+| 玩家靠近 | HUD 显示 `按 E 查看 {displayName}`。 |
 | 点击或按 `E` | 打开同一个 `BirdInfoPanel`，但内容替换为该鸟类。 |
-| `audio` 存在 | 播放按钮可播放该鸟鸣。 |
+| `audio` 存在且返回可播放音频类型 | 播放按钮可播放该鸟鸣。 |
 
 ## 8. When To Copy Logic
 
@@ -214,8 +220,9 @@ this.load.audio('bird:kingfisher:call', '/birds/kingfisher/call.mp3');
 | Problem | Likely Cause | Fix |
 |---------|--------------|-----|
 | 鸟类不显示 | `birds.json` 未被加载，或 `spawn` 坐标在视野外。 | 检查数据读取和坐标。 |
-| 图片 404 | 资源路径和目录名不一致。 | 确保 URL 为 `/birds/{birdId}/sprite.png`。 |
-| 面板仍显示旧鸟 | 面板没有在打开时刷新当前 `BirdProfile`。 | 调用 `panel.open(bird.profile)`。 |
+| 图片 404 | 资源路径和目录名不一致。 | 确保 URL 为 `/birds/{birdId}/portrait.png`，后续接入 sprite 后也检查 `/birds/{birdId}/sprite.png`。 |
+| 有音频路径但按钮禁用 | 文件不存在，或 Vite fallback 返回了 `text/html`。 | 确认 `public/birds/{birdId}/call.mp3` 存在，并且浏览器直接访问该 URL 返回音频。 |
+| 面板仍显示旧鸟 | 面板没有在打开时刷新当前 `BirdProfile`。 | 确认 `NatureScene` 调用 `BirdInfoPanel.show(bird.profile, onClose)`。 |
 | 音频不播放 | 浏览器限制自动播放，或文件路径错误。 | 必须由用户点击触发播放，并检查 URL。 |
 | 多个鸟同时触发 | 交互系统没有筛选最近鸟类。 | 只允许最近且在半径内的鸟成为 active target。 |
 | 遮挡不对 | 新鸟没有参与 `DepthSystem.sortByY`。 | 把所有 `BirdNPC` 加入深度排序列表。 |

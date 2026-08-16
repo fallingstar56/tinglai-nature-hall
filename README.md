@@ -11,7 +11,9 @@ tinglai-nature-hall/
 ├─ .git/                       # Git 仓库元数据目录
 ├─ .gitignore                  # Git 忽略规则
 ├─ CHANGELOG.md                # 项目变更记录
+├─ CopyAsset.md                # 新增鸟类资源和复用交互逻辑指南
 ├─ LICENSE                     # MIT 许可证文本
+├─ ResEmbed.md                 # 运行时资源嵌入、路径和 fallback 指南
 ├─ README.md                   # 项目说明、命令和架构文档
 ├─ index.html                  # Vite 入口 HTML，承载 Phaser canvas
 ├─ log.js                      # Phaser 模板遗留日志脚本
@@ -60,6 +62,17 @@ tinglai-nature-hall/
 | `npm run build-nolog` | Create a production build in `dist`. |
 | `npm run typecheck` | Run strict TypeScript checks. |
 
+## Asset Workflow Docs
+
+后续开发者在嵌入美术资源或复制鸟类交互逻辑前，必须先仔细阅读：
+
+| File | When To Read |
+|------|--------------|
+| `ResEmbed.md` | 添加、替换或部署鸟类图片、鸟鸣、地图、tileset、环境音、粒子等运行时资源前阅读。 |
+| `CopyAsset.md` | 新增一只鸟类、复制 `public/birds/{birdId}/` 目录、复制 `birds.json` 数据、复用现有鸟类详情面板和交互逻辑前阅读。 |
+
+当前鸟类闭环是数据驱动的：默认只需要新增 `public/birds/{birdId}/` 资源目录并复制 `src/data/birds.json` 中的一条鸟类配置。不要为普通鸟类复制 `BirdNPC`、`InteractionSystem`、`BirdInfoPanel` 或 `AudioSystem` 逻辑；只有需要特殊动画、小游戏、多段声音或问答时，才考虑扩展代码。
+
 ## File Responsibilities
 
 ### Root Files
@@ -90,6 +103,7 @@ tinglai-nature-hall/
 | Path | Responsibility |
 |------|----------------|
 | `public/assets/README.md` | 说明运行时素材应放在 `public/assets` 下，并通过 `/assets/...` 访问。 |
+| `public/birds/` | 保存鸟类 sprite、portrait、call 和后续 marker 等资源，目录名应与 `BirdProfile.id` 一致。 |
 | `public/animals/` | 预留动物 NPC 精灵、图像或展示素材目录。 |
 | `public/audio/ambient/` | 预留自然大厅环境循环音频目录。 |
 | `public/audio/animals/` | 预留动物音效目录。 |
@@ -105,24 +119,28 @@ tinglai-nature-hall/
 |------|----------------|
 | `src/main.ts` | 浏览器入口，DOM 加载完成后调用 `StartGame('game-container')`。 |
 | `src/data/animals.json` | 动物内容数据种子文件，目前为空数组，供后续数据驱动加载扩展。 |
+| `src/data/birds.json` | 鸟类内容数据文件，驱动鸟类 NPC、详情面板、图片路径和音频路径。 |
 | `src/game/main.ts` | Phaser 游戏入口，读取 `gameConfig` 并注册 `BootScene`、`Preloader`、`NatureScene`。 |
-| `src/game/config/assetManifest.ts` | 集中登记未来地图、tileset、角色、动物、音频和特效资源路径。 |
+| `src/game/config/assetManifest.ts` | 集中登记未来地图、tileset、角色、鸟类、音频和特效资源路径；当前尚未被 `Preloader` 消费。 |
 | `src/game/config/gameConfig.ts` | 集中维护视口大小、世界尺寸、颜色、玩家出生点和动物生成点。 |
 | `src/game/entities/AnimalNPC.ts` | 定义动物 NPC 容器，保存 `id`、`species`、`displayName`，并绘制占位身体、阴影和标记。 |
+| `src/game/entities/BirdNPC.ts` | 定义数据驱动鸟类 NPC，占位绘制鸟类实体、点击区域和呼吸热点。 |
 | `src/game/entities/Player.ts` | 定义玩家容器，设置移动速度、占位身体、脸部和阴影。 |
 | `src/game/scenes/BootScene.ts` | 启动场景，完成 Phaser 场景链路衔接并进入 `Preloader`。 |
 | `src/game/scenes/Preloader.ts` | 资源预加载场景，目前显示加载文本，并预留后续资源加载入口。 |
-| `src/game/scenes/NatureScene.ts` | 主游戏场景，创建大厅占位图形、分层、光影粒子锚点、玩家、动物、输入、HUD 和摄像机跟随。 |
-| `src/game/systems/AudioSystem.ts` | 封装环境音循环播放和停止全部音频的入口。 |
+| `src/game/scenes/NatureScene.ts` | 主游戏场景，创建大厅占位图形、分层、光影粒子锚点、玩家、鸟类、输入、交互面板、HUD 和摄像机跟随。 |
+| `src/game/systems/AudioSystem.ts` | 封装环境音循环、鸟鸣可用性探测、播放、停止和清理。 |
 | `src/game/systems/CollisionSystem.ts` | 根据 `hallLayout.walkableArea` 限制玩家位置，预留墙体和展陈物碰撞扩展点。 |
 | `src/game/systems/DepthSystem.ts` | 按对象 Y 坐标设置深度，实现俯视 2D 的前后遮挡关系。 |
 | `src/game/systems/InputSystem.ts` | 读取方向键和 WASD 输入，并按 delta time 驱动玩家移动。 |
-| `src/game/systems/InteractionSystem.ts` | 在指定半径内查找离玩家最近的动物 NPC，供 HUD 和后续交互触发使用。 |
+| `src/game/systems/InteractionSystem.ts` | 在指定半径内查找离玩家最近的可交互目标，供 HUD 和鸟类交互触发使用。 |
 | `src/game/systems/LightingSystem.ts` | 创建环境光占位图形，预留后续伪 3D 光照和局部高光能力。 |
 | `src/game/systems/ParticleSystem.ts` | 创建粒子发射器占位锚点，预留尘埃、落叶、水汽等效果。 |
 | `src/game/types/Entities.ts` | 定义实体生成配置、动物生成配置和可深度排序对象接口。 |
+| `src/game/types/Bird.ts` | 定义 `BirdProfile`，作为鸟类数据、NPC、详情面板和音频入口的共享契约。 |
 | `src/game/types/World.ts` | 定义场景层名称、世界边界和大厅生成点类型。 |
 | `src/game/types/index.ts` | 聚合导出实体和世界类型，简化跨目录导入。 |
 | `src/game/world/HallLayout.ts` | 定义世界边界、可行走区域和两个展区占位数据。 |
 | `src/game/world/LayerRegistry.ts` | 创建 `ground`、`walls`、`entities`、`foreground`、`effects` 五个 Phaser 层并设置深度。 |
 | `src/ui/HudOverlay.ts` | 创建固定在屏幕上的交互提示文本，并提供更新文本的方法。 |
+| `src/ui/BirdInfoPanel.ts` | 创建鸟类详情 DOM 面板，展示图片 fallback、中文名、拉丁名、简介、栖息地、识别特征和音频状态。 |
